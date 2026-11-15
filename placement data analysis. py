@@ -1,0 +1,94 @@
+
+
+def bar_branch_average(branch_df):
+    """Bar chart: average package per branch."""
+    fig, ax = plt.subplots(figsize=(7, 5))
+    bars = ax.bar(branch_df.index, branch_df["Average"], color="#F58518")
+    ax.bar_label(bars, fmt="%.2f", padding=2)
+    ax.set_title("Branch-wise Average Package")
+    ax.set_xlabel("Branch")
+    ax.set_ylabel("Average Package (LPA)")
+    ax.margins(y=0.12)
+    _finish(fig, "branch_average_bar.png")
+
+
+# --------------------------------------------------------------------------
+# 4. Menu options
+# --------------------------------------------------------------------------
+def option_summary(df):
+    s = summary_stats(df)
+    print(f"Total placed: {s['total']} | Average package: {s['average']:.2f} LPA")
+    print(f"Highest: {s['highest']:.2f} LPA ({s['top_student']}, {s['top_company']})")
+    bar_student_packages(df)
+
+
+def option_branchwise(df, limit):
+    branch_df = branch_analysis(df)
+    print("Placements: " +
+          " | ".join(f"{b}: {int(r.Placements)}" for b, r in branch_df.iterrows()))
+    print("Average package: " +
+          " | ".join(f"{b} {r.Average:.2f}" for b, r in branch_df.iterrows()))
+
+    above = students_above(df, limit)
+    label = f"{limit:g}"
+    if above.empty:
+        print(f"Above {label} LPA: none")
+    else:
+        print(f"Above {label} LPA: " +
+              " | ".join(f"{r.Student} ({r.Package_LPA:.2f})" for r in above.itertuples()))
+
+    pie_branch_placements(branch_df)
+    bar_branch_average(branch_df)
+
+
+def ask_limit(default):
+    try:
+        text = input(f"Enter package limit in LPA [{default:g}]: ").strip()
+    except EOFError:
+        return default
+    if not text:
+        return default
+    try:
+        value = float(text)
+    except ValueError:
+        print(f"Invalid limit '{text}', using {default:g}.")
+        return default
+    return value
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Placement Data Analyzer")
+    parser.add_argument("csv", nargs="?", default="placement.csv",
+                        help="path to the placement CSV (default: placement.csv)")
+    parser.add_argument("--limit", type=float, default=DEFAULT_LIMIT,
+                        help="default package limit for option 2 (default: 7)")
+    args = parser.parse_args()
+
+    df, _ = load_and_clean(args.csv)
+    if df.empty:
+        sys.exit("No valid placement records found.")
+
+    while True:
+        print("\n===== Placement Data Analyzer =====")
+        print("1. Summary (total, average, highest)")
+        print("2. Branch-wise analysis and filter above a package")
+        print("3. Exit")
+        try:
+            choice = input("Menu option: ").strip()
+        except EOFError:
+            break
+
+        if choice == "1":
+            option_summary(df)
+        elif choice == "2":
+            limit = ask_limit(args.limit)
+            option_branchwise(df, limit)
+        elif choice == "3":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid option. Please enter 1, 2 or 3.")
+
+
+if __name__ == "__main__":
+    main()

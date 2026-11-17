@@ -1,4 +1,4 @@
-# Placement Data Analyzer (PS No. 8)
+
 Analyses campus placement data from a CSV file using **Python 3, Pandas and Matplotlib**. It reports the number of placed students, the average and highest package, branch-wise placements, and the students above a package limit, and presents the results with charts.
 ## 1. Problem Statement
 Given a CSV of placed students (`Student, Branch, Company, Package_LPA`, packages in lakhs per annum), find:
